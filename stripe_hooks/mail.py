@@ -1,10 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import boto
 import time
 import datetime
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
-from shared.helpers import humanize_date, humanize_money
 
 from .app import app
+from .helpers import humanize_date, humanize_money
 
 # Global variables in the Jinga templates.
 globals = {'business': app.config['email'][

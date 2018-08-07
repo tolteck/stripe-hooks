@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
-from shared.helpers import load_configuration
 from flask import Flask
+
+from .helpers import load_configuration
 
 # The instance path has to be absolute so lets get the absolute path to our
 # root directory.

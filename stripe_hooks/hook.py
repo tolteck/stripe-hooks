@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from flask import Blueprint, request
 from stripe.error import InvalidRequestError
-from shared.helpers import jsonify_with_status, CleanParseException
-from shared.parser import parse_hook
+
+from .helpers import jsonify_with_status, CleanParseException
+from .parser import parse_hook
 
 hook = Blueprint("hook", __name__)
 

@@ -1,7 +1,11 @@
-from .app import app
-from shared.helpers import jsonify_with_status
-from web.hook import hook
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import stripe
+
+from .app import app
+from .helpers import jsonify_with_status
+from .hook import hook
 
 app.register_blueprint(hook, url_prefix='/webhook')
 

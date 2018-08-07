@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import stripe
+
 from .app import app
-from shared.mail import send_notification, send_receipt
-from shared.helpers import CleanParseException, format_stripe_object
+from .mail import send_notification, send_receipt
+from .helpers import CleanParseException, format_stripe_object
 
 
 def parse_hook(payload):
