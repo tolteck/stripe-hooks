@@ -2,7 +2,7 @@ import httpretty
 import glob
 import json
 import pytest
-from stripe import InvalidRequestError
+from stripe.error import InvalidRequestError
 from test.base import IntegrationTest
 from shared.parser import parse_hook
 from shared.helpers import CleanParseException

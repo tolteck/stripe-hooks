@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from stripe import InvalidRequestError
+from stripe.error import InvalidRequestError
 from shared.helpers import jsonify_with_status, CleanParseException
 from shared.parser import parse_hook
 
