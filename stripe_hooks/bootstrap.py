@@ -14,5 +14,6 @@ app.register_blueprint(hook, url_prefix='/webhook')
 def page_not_found(error):
     return jsonify_with_status(404, {"error": "resource not found"})
 
-# Configurat stripe
-stripe.api_key = app.config.get('STRIPE_KEY')
+# stripe configuration
+if app.config['stripe'].get('api_base', 'default') != 'default':
+    stripe.api_base = app.config['stripe']['api_base']

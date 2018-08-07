@@ -43,15 +43,21 @@ def load_configuration(path):
     """
     data = json.load(open(path))
 
-    if data.get("business") == None:
+    if data["email"].get("business") is None:
         raise Exception(
             "Configuration failure: a business attribute is required")
-    if data["business"].get("email_address") == None:
+    if data["email"]["business"].get("email_address") is None:
         raise Exception(
             "Configuration failure: a business email address is required")
-    if data["business"].get("notification_address") == None:
+    if data["email"]["business"].get("notification_address") is None:
         raise Exception(
             "Configuration failure: a notification address is required")
+    if data["stripe"].get("endpoint_secret") is None:
+        raise Exception(
+            "Configuration failure: stripe endpoint secret is required")
+    if data["smtp"].get("url") is None:
+        raise Exception(
+            "Configuration failure: smtp server url is required")
 
     return data
 
