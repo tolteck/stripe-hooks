@@ -11,10 +11,10 @@ from .parser import parse_hook
 hook = Blueprint("hook", __name__)
 
 
-@hook.route("/receive", methods=["POST"])
+@hook.route("/webhook", methods=["POST"])
 def receieve_hook():
     """
-    Path:       /webhook/receive
+    Path:       /webhook
     Method:     POST
     """
     # Abort if we're not sent JSON

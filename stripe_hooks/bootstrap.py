@@ -7,7 +7,7 @@ from .app import app
 from .helpers import jsonify_with_status
 from .hook import hook
 
-app.register_blueprint(hook, url_prefix='/webhook')
+app.register_blueprint(hook)
 
 
 @app.errorhandler(404)
