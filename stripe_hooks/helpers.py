@@ -52,6 +52,9 @@ def load_configuration(path):
     if data["email"]["business"].get("notification_address") is None:
         raise Exception(
             "Configuration failure: a notification address is required")
+    if data["email"].get("templates_path") is None:
+        raise Exception(
+            "Configuration failure: email templates_path is required")
     if data["stripe"].get("endpoint_secret") is None:
         raise Exception(
             "Configuration failure: stripe endpoint secret is required")

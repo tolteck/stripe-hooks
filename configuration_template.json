@@ -7,6 +7,7 @@
     "url": "localhost:25"
   },
   "email": {
+    "templates_path": "stripe-hooks-emails",
     "business": {
       "name": "Acme, Inc.",
       "signoff": "The Acme Team",

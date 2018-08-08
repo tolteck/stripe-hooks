@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import boto
 import time
 import datetime
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
 
 from .app import app
 from .helpers import humanize_date, humanize_money
@@ -13,19 +15,32 @@ from .helpers import humanize_date, humanize_money
 globals = {'business': app.config['email'][
     'business'], 'humanize_date': humanize_date, 'humanize_money': humanize_money}
 
+path = app.config['email']['templates_path']
 notify_templates = Environment(
-    loader=FileSystemLoader('stripe-hooks-emails/notifications'), undefined=StrictUndefined)
+    loader=FileSystemLoader(path + '/notifications'),
+    undefined=StrictUndefined)
 notify_templates.globals = globals
-
 receipt_templates = Environment(
-    loader=FileSystemLoader('stripe-hooks-emails/receipts'), undefined=StrictUndefined)
+    loader=FileSystemLoader(path + '/receipts'), undefined=StrictUndefined)
 receipt_templates.globals = globals
 
 
-def ses_connection():
-    return boto.connect_ses(
-        aws_access_key_id=app.config['AWS_ACCESS_KEY'],
-        aws_secret_access_key=app.config['AWS_SECRET_KEY'])
+def send_email(from_address, subject, txt_rendered,
+               recipient, html):
+    msg_root = MIMEMultipart('related')
+    msg_root['Subject'] = subject
+    msg_root['From'] = from_address
+    msg_root['To'] = recipient
+
+    msg_alternative = MIMEMultipart('alternative')
+    msg_root.attach(msg_alternative)
+
+    msg_alternative.attach(MIMEText(txt_rendered, 'plain'))
+    msg_alternative.attach(MIMEText(html, 'html'))
+
+    s = smtplib.SMTP('localhost', 25)
+    s.send_message(msg_root)
+    s.quit()
 
 
 def send_receipt(key, recipient, data=None):
@@ -65,14 +80,13 @@ def send_receipt(key, recipient, data=None):
         # Don't send while unit/integration testing
         return
 
-    conn = ses_connection()
     # Send the actual email
-    conn.send_email(
+    send_email(
         from_address,
         subject,
         txt_rendered,
-        [recipient],
-        html_body=html_rendered)
+        recipient,
+        html_rendered)
 
 
 def send_notification(key, data=None):
@@ -111,11 +125,10 @@ def send_notification(key, data=None):
         # Don't send while unit/integration testing
         return
 
-    conn = ses_connection()
     # Send the actual email
-    conn.send_email(
+    send_email(
         from_address,
         subject,
         txt_rendered,
-        [business['notification_address']],
-        html_body=html_rendered)
+        business['notification_address'],
+        html_rendered)
