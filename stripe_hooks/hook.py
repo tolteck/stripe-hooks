@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from flask import Blueprint, request
-from stripe.error import InvalidRequestError
+import stripe
 
+from .app import app
 from .helpers import jsonify_with_status, CleanParseException
 from .parser import parse_hook
 
@@ -26,8 +27,18 @@ def receieve_hook():
         return jsonify_with_status(406, {'error': 'Does not have an id'})
 
     try:
-        parse_hook(request.json)
-    except InvalidRequestError as e:
+        event = stripe.Webhook.construct_event(
+            request.get_data(),
+            request.headers.get('Stripe-Signature', None),
+            app.config['stripe']['endpoint_secret'])
+    except ValueError:
+        return '', 400
+    except stripe.error.SignatureVerificationError:
+        return '', 401
+
+    try:
+        parse_hook(event)
+    except stripe.error.InvalidRequestError as e:
         # If the hook failed to parse, send back why to stripe
         # This will be visible in your dashboard
         return jsonify_with_status(406, {'error': str(e)})

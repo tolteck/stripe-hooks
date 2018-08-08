@@ -8,17 +8,7 @@ from .mail import send_notification, send_receipt
 from .helpers import CleanParseException, format_stripe_object
 
 
-def parse_hook(payload):
-    """Parses a dictionary representation of the stripe webhook
-    by requesting a new version of the event by it's ID from the stripe
-    API. This is done for security reasons.
-
-    See https://github.com/pearkes/stripe-hooks#security
-    """
-    # Request the event from Stripe, raises stripe.InvalidRequestError if
-    # not found
-    event = stripe.Event.retrieve(payload.get("id"))
-
+def parse_hook(event):
     # Determine what type of event it is and send any nots/receipts
     determine_event_type(event)
 
