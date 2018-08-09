@@ -1,9 +1,10 @@
 ## stripe-hooks
 
-[![Build Status](https://travis-ci.org/pearkes/stripe-hooks.png?branch=master)](https://travis-ci.org/pearkes/stripe-hooks)
-
 This is a Python web application to receive [webhooks](https://stripe.com/docs/webhooks)
 from Stripe and send emails accordingly.
+
+This is a fork of [Jack Pearkes](https://github.com/pearkes/stripe-hooks/) original work:
+[stripe-hooks](https://github.com/pearkes/stripe-hooks).
 
 There are two types of emails:
 
@@ -19,31 +20,47 @@ charges or new customers, to administrators
 It supports **all** Stripe [events](https://stripe.com/docs/api#event_types).
 
 The email content included by default is versatile English. Any
-of it can be modifed to fit your business or use case. It's easy to
+of it can be modified to fit your business or use case. It's easy to
 deploy and you shouldn't need to touch Python to configure it.
+
+### Installation
+
+```sh
+    $ python3 setup.py install
+```
 
 ### Configuration
 
-All of the configuration is done in JSON in the [`configuration.json`](configuration.json)
-file.
+All of the configuration is done in JSON.
 
-All receipts and notifications are **off by default** with a blank
-`configuration.json`. To activate
-a notification or receipt, simply create a new key, named by the
+Create a `.json` file following [`configuration_template.json`](configuration_template.json) and drop it in the command line:
+
+```sh
+    $ stripe-hooks configuration.json 
+```
+
+More details below:
+
+#### Emails type
+
+All receipts and notifications are **off by default** with a blank `configuration.json`.
+
+To activate a notification or receipt, simply create a new key, named by the
 event type (the list can be found [here](https://stripe.com/docs/api#event_types))
 and formatted like this:
 
 ```json
 {
-  "charge.failed": {
-    "active": true,
-    "subject": "Oh nos! A Charge Has Failed!"
+  ...
+  "email": {
+    "charge.failed": {
+      "active": true,
+      "subject": "Oh nos! A Charge Has Failed!"
+    }
   }
+  ...
 }
 ```
-
-**Please note that the default [`configuration.json`](configuration.json)
-has active notifications.**
 
 `subject` is optional. By default, the email subject will be the type,
 periods replacing spaces and titlecased, prefixed with your
@@ -52,88 +69,112 @@ business name (if it exists) like so: `charge.failed -> [Acme Inc.] Charge Faile
 Everything falls back to safe, generic defaults, like not showing a business name
 if it doesn't exist.
 
-Full configuration could look something like this:
+Emails type configuration could look something like this:
 
 ```json
 {
-  "business": {
-    "name": "Acme, Inc.",
-    "signoff": "The Acme Team",
-    "email": "Acme Support Team <support@example.com>"
-  },
-  "notifications": {
-    "balance.available": {
-      "active": true,
-      "subject": "Dat chedda is available..."
+  ...
+  "email": {
+    "business": {
+      "name": "Acme, Inc.",
+      "signoff": "The Acme Team",
+      "email": "Acme Support Team <support@example.com>"
     },
-    "charge.succeeded": {
-      "active": true
+    "notifications": {
+      "balance.available": {
+        "active": true,
+        "subject": "Dat chedda is available..."
+      },
+      "charge.succeeded": {
+        "active": true
+      },
+      "charge.failed": {
+        "active": true
+      },
+      "charge.refunded": {
+        "active": true
+      }
     },
-    "charge.failed": {
-      "active": true
-    },
-    "charge.refunded": {
-      "active": true
-    }
-  },
-  "receipts": {
-    "invoice.created": {
-      "active": true,
-      "subject": "New Invoice"
+    "receipts": {
+      "invoice.created": {
+        "active": true,
+        "subject": "New Invoice"
+      }
     }
   }
+  ...
 }
 ```
 
-### Deploying
+#### Emails Content
 
-This is designed to be deployed on Heroku. However, it's simple
-enough and has so few dependencies that you could run it pretty
-much anywhere.
+You need to provide a path to your emails templates:
 
-On Heroku:
-
-    $ git clone --recursive git@github.com:pearkes/stripe-hooks.git
+```json
+{
+  ...
+  "email": {
+    "templates_path": "stripe-hooks-emails",
     ...
-    $ heroku create
-    ...
-    $ git push heroku master
+  }
+  ...
+}
+```
 
-Then, you'll need to add your keys:
 
-    $ heroku config:add STRIPE_KEY=foobar AWS_ACCESS_KEY=foobar AWS_SECRET_KEY=foobar
+You can fork [that repository](https://github.com/pearkes/stripe-hooks-emails) and you will have a good start.
 
-That's it. Register that URL with Stripe and you're good to go.
+#### stripe
 
-### Email Provider
+You need to configure a stripe webhook in stripe GUI [stripe webhooks](https://dashboard.stripe.com/account/webhooks).
 
-Right now, it uses [Amazon SES](http://aws.amazon.com/ses/). Reliable, cheap and
-easy to set-up.
+The service default port is `5000` and route url is `/webhook`.
 
-### Changing Email Content
+When you have your endpoint secret just drop it in the configuration file:
 
-The default email is include in a submodule called `stripe-hooks-emails`.
+```json
+{
+  ...
+  "stripe": {
+    "endpoint_secret": "whsec_..."
+  },
+  ...
+}
+```
 
-You can fork [that repository](https://github.com/pearkes/stripe-hooks-emails),
-then update the `.gitmodules` path to use your fork. Then, all you need
-to do is a `git submodule update` and you'll be using your content.
+The endpoint secret will be use to authenticate stripe `POST` requests following [stripe documentation](https://stripe.com/docs/webhooks/signatures).
 
-Alternatively, you can just clone the repository bare and work off of that.
-However, that will make upstream updates harder to integrate.
+#### Email Provider
 
-### Security
+SMTP is use as the default interface with your email provider.
 
-In order to avoid fraudulent requests made to the `/webhook/receive` endpoint,
-the only attribute trusted in the payload is the event ID. This ID is then
-used to request the event directly from Stripe with proper authentication.
+Add this in your configuration file:
 
-### Testing Templates
+```json
+{
+  ...
+  "smtp": {
+    "url": "localhost:25"
+  },
+  ...
+}
+```
 
-There are automated tests to guarantee the integrity of your templates.
+Mailgun is a good provider. Stripe team use it in there own documentation.
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to set-up
-an environment to run the tests.
+[Jack Pearkes](https://github.com/pearkes/stripe-hooks/) original work uses [Amazon SES](http://aws.amazon.com/ses/).
+
+Revert commit `refactor(mail): use a smtp server instead of aws ses` if you want to use Amazon SES.
+
+
+### Test
+
+WIP
 
 ### Contributing
 
-See the [contributing guide](CONTRIBUTING.md).
+Just drop a PR following [git karma](http://karma-runner.github.io/2.0/dev/git-commit-msg.html) style.
+
+When unit tests will be up-to-date, they will need to pass.
+
+Project isn't compliant with [Flake8](http://flake8.pycqa.org/en/latest/) lint for now, so it's not mandatory, but it could be cool.
