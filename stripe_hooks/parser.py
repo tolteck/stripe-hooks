@@ -18,10 +18,10 @@ def determine_event_type(event):
 
     config = app.config['email']
 
-    if config['notifications'].get(event.type):
+    if config.get('notifications', {}).get(event.type):
         parse_notification(event)
 
-    if config['receipts'].get(event.type):
+    if config.get('receipts', {}).get(event.type):
         parse_receipt(event)
 
 
